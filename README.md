@@ -16,7 +16,7 @@
 
 The project was built as a portfolio piece to demonstrate a production-quality full-stack system combining modern AI engineering — RAG pipelines, local embeddings, vector search — with real-time data aggregation and a polished user interface.
 
-> ⚠️ FogOfWar is rate-limited to **10 searches per IP per day** to stay within free-tier API quotas. The dashboard data refreshes automatically every 6 hours via a background scheduler.
+> ⚠️ FogOfWar is rate-limited to **30 searches per IP per day** to stay within free-tier API quotas. The dashboard data refreshes automatically every 2 hours via a background scheduler.
 
 ---
 
