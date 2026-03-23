@@ -12,11 +12,11 @@
 
 ## 📌 About
 
-**FogOfWar** is a gaming market intelligence dashboard designed for indie game founders and startup scouts. It aggregates real-time signals from **Steam, SteamSpy, Twitch, and Reddit**, processes them through a **Groq-powered LLM pipeline**, and delivers actionable insights via a dark-mode gaming dashboard.
+**FogOfWar** is a gaming market intelligence dashboard designed for indie game founders and startup scouts. It aggregates real-time signals from **Steam, SteamSpy, Twitch, and IGDB**, processes them through a **Groq-powered LLM pipeline**, and delivers actionable insights via a dark-mode gaming dashboard.
 
 The project was built as a portfolio piece to demonstrate a production-quality full-stack system combining modern AI engineering — RAG pipelines, local embeddings, vector search — with real-time data aggregation and a polished user interface.
 
-> ⚠️ FogOfWar is rate-limited to **30 searches per IP per day** to stay within free-tier API quotas. The dashboard data refreshes automatically every 2 hours via a background scheduler.
+> ⚠️ FogOfWar is rate-limited to **30 searches per IP per day** to stay within free-tier API quotas. The dashboard data refreshes automatically every 6 hours via a background scheduler.
 
 ---
 
@@ -25,7 +25,7 @@ The project was built as a portfolio piece to demonstrate a production-quality f
 - 🔍 Game search with **semantic similarity** — finds games even with approximate or partial titles using vector embeddings
 - 📊 Per-game dashboard with **market data** (owners, price, reviews) sourced from Steam and SteamSpy
 - 📺 **Twitch viewership analytics** — live viewer counts, top streamers, and tag trends
-- 💬 **Reddit sentiment analysis** — community activity, post volume, and sentiment scoring per game
+- 🎮 **IGDB community data** — user and critic ratings, similar games, and official screenshots per game
 - 🤖 **AI-generated insights** — Groq LLM synthesizes market and community signals into a concise founder-facing brief
 - 💡 **RAG chat interface** — ask natural language questions about any game; answers are grounded in aggregated data stored in pgvector
 - 🎯 **Genre-level dashboard** — trending genres with global sentiment and market overview, refreshed every 6 hours
@@ -41,9 +41,11 @@ The backend exposes three GraphQL schemas: one for game search and on-demand pip
 
 The **RAG pipeline** generates embeddings locally using `@xenova/transformers` with the `all-MiniLM-L6-v2` model (384 dimensions). Embeddings are stored in **pgvector** inside a custom Supabase schema. When a user searches for a game, the query is embedded and matched against the vector store via cosine similarity before triggering live API calls — this keeps response times fast and avoids redundant LLM calls for recently searched games.
 
-The **LLM pipeline** uses two Groq models: `llama-3.1-8b-instant` for fast classification tasks and `llama-3.3-70b-versatile` for generating the full market insight brief. Steam, Twitch, and Reddit data is fetched in parallel, normalized, and passed as structured context to the LLM.
+The **LLM pipeline** uses two Groq models: `llama-3.1-8b-instant` for fast classification tasks and `llama-3.3-70b-versatile` for generating the full market insight brief. Steam, Twitch, and IGDB data is fetched in parallel, normalized, and passed as structured context to the LLM.
 
 The backend runs on **AWS EC2** (not serverless) by design — the local embedding model must stay warm in memory between requests, and the `node-cron` scheduler requires a persistent process. PM2 manages the Node.js process with automatic restart on failure. nginx sits in front as a reverse proxy with HTTPS via Let's Encrypt.
+
+> **Note on Reddit:** Reddit's public API blocks requests from cloud provider IP ranges (AWS, GCP, Azure) as part of their 2023 API policy changes. IGDB was chosen as the community data source because it provides structured, reliable data (ratings, similar games, screenshots) accessible from any infrastructure without restrictions.
 
 ---
 
@@ -58,7 +60,7 @@ The backend runs on **AWS EC2** (not serverless) by design — the local embeddi
 | Embeddings | `@xenova/transformers` — `all-MiniLM-L6-v2` (384 dims, runs locally) |
 | Vector DB | pgvector on Supabase (custom `fogofwar` schema) |
 | Database | Supabase (PostgreSQL) — rate limits, snapshots, embeddings |
-| External APIs | Steam Web API, SteamSpy, Twitch Helix API, Reddit API |
+| External APIs | Steam Web API, SteamSpy, Twitch Helix API, IGDB API |
 | Scheduler | `node-cron` — dashboard pipeline every 6 hours |
 | Deploy (Frontend) | Vercel |
 | Deploy (Backend) | AWS EC2 (Ubuntu), PM2, nginx, GitHub Actions CI/CD |
@@ -71,7 +73,7 @@ The backend runs on **AWS EC2** (not serverless) by design — the local embeddi
 
 [![Live Demo](https://img.shields.io/badge/Live_Demo-7F77DD?style=for-the-badge&logo=vercel&logoColor=white)](https://fogofwar.peter-campos.site)
 
-> The first search for a new game may take 10–15 seconds while the pipeline fetches live data from Steam, Twitch, Reddit, and Groq.
+> The first search for a new game may take 10–15 seconds while the pipeline fetches live data from Steam, Twitch, IGDB, and Groq.
 
 ---
 
